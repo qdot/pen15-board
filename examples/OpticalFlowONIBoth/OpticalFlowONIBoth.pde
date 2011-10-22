@@ -7,6 +7,7 @@
  
 import SimpleOpenNI.*;
 
+boolean use_recording = false;
 SimpleOpenNI      context;
  
 ///////////////////////////////////////////////
@@ -86,21 +87,29 @@ void setup(){
 
     // mirror is by default enabled
     //context.setMirror(true);
-    String f = selectInput();
-    if(f == null) {
-	println("No file selected, exiting");
-	exit();
-	return;
+    if(use_recording) {
+	String f = selectInput();
+	if(f == null) {
+	    println("No file selected, exiting");
+	    exit();
+	    return;
+	}
+	
+	//String f = "/home/qdot/NedLensSideAngle2.oni";
+	if( context.openFileRecording(f) == false) {
+	    println("can't find recording !!!!");
+	    exit();
+	    return;
+	}
+	context.enableScene();
+	println("opening file");
     }
-    if( context.openFileRecording(f) == false) {
-	println("can't find recording !!!!");
-	exit();
-	return;
+    else {
+	// enable depthMap generation 
+	context.enableDepth();	
+	context.enableRGB();	
     }
-
     println("opening file");
-
-    context.enableScene();
 
     size(context.depthWidth(), context.depthHeight());
     smooth();

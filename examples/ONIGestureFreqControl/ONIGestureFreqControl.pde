@@ -2,6 +2,8 @@ import SimpleOpenNI.*;
 import processing.serial.*;
 Serial pen15;
 
+boolean use_recording = false;
+
 SimpleOpenNI      context;
 
 // NITE
@@ -13,7 +15,7 @@ PointDrawer       pointDrawer;
 ArrayList change = new ArrayList();
 int _maxChange = 20;
 int lastChange = 0;
-/*
+
 void initializePen15()
 {
     if(Serial.list().length == 0) {
@@ -23,33 +25,36 @@ void initializePen15()
     }
     pen15 = new Serial(this, Serial.list()[0], 9600);
 }
-*/
+
 void setup()
 {
     context = new SimpleOpenNI(this);
 
     // mirror is by default enabled
     //context.setMirror(true);
-    /*
-    String f = selectInput();
-    if(f == null) {
-	println("No file selected, exiting");
-	exit();
-	return;
+    if(use_recording) {
+	String f = selectInput();
+	if(f == null) {
+	    println("No file selected, exiting");
+	    exit();
+	    return;
+	}
+	
+	//String f = "/home/qdot/NedLensSideAngle2.oni";
+	if( context.openFileRecording(f) == false) {
+	    println("can't find recording !!!!");
+	    exit();
+	    return;
+	}
+	context.enableScene();
+	println("opening file");
     }
-    */
-    String f = "/home/qdot/NedLensSideAngle2.oni";
-    if( context.openFileRecording(f) == false) {
-	println("can't find recording !!!!");
-	exit();
-	return;
+    else {
+	// enable depthMap generation 
+	context.enableDepth();	
     }
-    
-
-    println("opening file");
 
     //initializePen15();
-    context.enableScene();
     context.enableHands();
     context.enableGesture();
     sessionManager = context.createSessionManager("Wave", "RaiseHand");
@@ -223,10 +228,6 @@ class PointDrawer extends XnVPointControl
 		if(firstVec != null) {
 		    strokeWeight(8);
 		    context.convertRealWorldToProjective(firstVec,screenPos);
-		    /*
-		    float val = (max - screenPos.y) / (max - min);
-		    pen15.write((int)(255.0 * val));
-		    */
 		    if(curList.size() > 3) {			
 			PVector p1 = (PVector)curList.get(1);
 			PVector p2 = (PVector)curList.get(0);
@@ -244,13 +245,14 @@ class PointDrawer extends XnVPointControl
 				    avg += (Integer)change.get(i) - (Integer)change.get(i+1);
 				}
 				println((1000.0) / (avg / change.size()));
+				//pen15.write((1000.0) / (avg / change.size()) * 15);
 			    }
 			}
 		    }
 		    point(screenPos.x,screenPos.y);
 		}
 		else {
-		    pen15.write(0);
+		    //pen15.write(0);
 		}
 		colorIndex++;
 	    }
